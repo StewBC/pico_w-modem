@@ -67,6 +67,10 @@ The -G "Unix Makefiles" can of course be replaced by Ninja or something else you
   
 The cmake command will download pico-sdk, libsmb2, WolfSSL, WolfSSH and the FreeRTOS-Kernel from Github.  Using version 3.17 or later will download what's needed for the pico-sdk.  Using an earlier version will recursively init and download all submodules.  That amounts to more than 4GB, whereas V3.17 or later will download 87M of pico-sdk.  Look for GetGithubCode in the root level CMakeLists.txt - the TAG for the library version is part of that function call.  
   
+To switch between building the UART and PIO versions look in modem/CMakeLists.txt for the line:  
+`set(USING_UART ON)`  
+ON builds the UART version and OFF builds the PIO version.  
+  
 ### Patches applied to libraries
   
 Patches are documented in the README.txt, inside the patches folder.  In brief - Wolfssl for Pico W is compiled using a provided set of Makefiles.  These are in wolfssl-5.5.3/IDE/GCC-ARM and Makefile.common needs to be adjusted for the Pico W.  Wolfssh has a Makefile added, to ide/GCC-ARM, which builds the Pico W version.  libsmb2`s CmakeLists.txt is patched for Pico SDK 1.5.0 which requires a different set of include folders.  These changes were applied using the patch command, but now the files are just wholesale replaced by new versions from the patches folder since I had reliability problems using patch.  
