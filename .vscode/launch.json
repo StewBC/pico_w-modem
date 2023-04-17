@@ -11,15 +11,15 @@
             // This may need to be arm-none-eabi-gdb depending on your system
             "gdbPath" : "arm-none-eabi-gdb",
             // Connect to an already running OpenOCD instance
-            "gdbTarget": "emailer.local:3333",
+            "gdbTarget": "your-openocd-server-name-here:3333",
             // This line will show the GDB output as-is in the output window
             // "showDevDebugOutput": "raw",
-            "svdFile": "/home/swessels/develop/un3/build/_deps/pico_sdk-src/src/rp2040/hardware_regs/rp2040.svd",
+            "svdFile": "<path to >/build/_deps/pico_sdk-src/src/rp2040/hardware_regs/rp2040.svd",
             "preLaunchCommands": [
                 "monitor arm semihosting enable",
                 "monitor debug_level -2"
             ],
-            // "runToEntryPoint": "main",
+            "runToEntryPoint": "main",
             // Work around for stopping at main on restart
             "postRestartCommands": [
                 "break main",

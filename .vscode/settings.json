@@ -17,37 +17,5 @@
         }
     },
     "cmake.buildBeforeRun": true,
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "files.associations": {
-        "array": "c",
-        "compare": "c",
-        "functional": "c",
-        "ostream": "c",
-        "ranges": "c",
-        "tuple": "c",
-        "type_traits": "c",
-        "utility": "c",
-        "algorithm": "cpp",
-        "*.tcc": "cpp",
-        "numeric": "cpp",
-        "deque": "cpp",
-        "string": "cpp",
-        "unordered_map": "cpp",
-        "vector": "cpp",
-        "string_view": "cpp",
-        "memory": "cpp",
-        "random": "cpp",
-        "initializer_list": "cpp",
-        "types.h": "c",
-        "select.h": "c",
-        "libsmb2-private.h": "c",
-        "time.h": "c",
-        "pico.h": "c",
-        "istream": "cpp",
-        "fstream": "cpp",
-        "sstream": "cpp",
-        "queue.h": "c",
-        "memory_resource": "cpp",
-        "hw_config.h": "c"
-    }
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }
