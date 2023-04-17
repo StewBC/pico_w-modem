@@ -691,10 +691,11 @@ void waitForSpace()
 void welcome()
 {
     c0tx.println();
-    c0tx.println("A2retroNET Serial WiFi modem emulator");
+    c0tx.println("StewBC's RPi Pico W WiFi modem emulator");
+    c0tx.println("github.com/StewBC/pico_w-modem");
     c0tx.println("BUILD " + build + "");
-    c0tx.println("Based on TheOldNet.com Serial WiFi modem emulator");
-    c0tx.println("GPL3 GITHUB.COM/SSSHAKE/VINTAGE-COMPUTER-WIFI-MODEM");
+    c0tx.println("Based on The Old Net - RS232 Serial WIFI Modem");
+    c0tx.println("GPL3 github.com/ssshake/vintage-computer-wifi-modem");
     c0tx.println();
 }
 
