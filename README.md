@@ -8,11 +8,15 @@ The project was also built in consultation with Oliver Schmidt.  He conceived of
   
 ## Releases  
   
-In the releases are two .uf2 files.  The one called serial.uf2 is for use with the RS232 TTL adapter.  The one called bus.uf2 is specific to a plug-in card for the Apple II.
+In the releases are two .uf2 files.  The one called uart.uf2 is for use with the RS232 TTL module.  The one called bus.uf2 is specific to a plug-in card for the Apple II.
 
 ## Issues
 
 Saving to flash (at&w) does work, but in the UART version the Pico W will need to be retsarted.
+
+## Status
+
+I have to move on to something else, so for now, I am not going to develop this any further.
   
 ## Pico W ready libraries
 
@@ -56,7 +60,8 @@ This assumes the cross-compile host is a Linux box, and that the ARM-GCC tools (
 /usr/bin/arm-none-eabi-nm
 /usr/bin/arm-none-eabi-size
 /usr/bin/arm-none-eabi-gcc
-/usr/bin/arm-none-eabi-objcopy```  
+/usr/bin/arm-none-eabi-objcopy
+```  
   
 The -G "Unix Makefiles" can of course be replaced by Ninja or something else you desire, it is just a suggestion for Linux.  
   
