@@ -41,10 +41,10 @@ namespace CoreBUS
 {
 #include "bus.pio.h"
 
-#define SSC_DATA	    0x98
-#define SSC_PARAMETERS  0x99
-#define SSC_CMD		    0x9A
-#define SSC_CTRL	    0x9B
+#define SSC_DATA	    0x8
+#define SSC_PARAMETERS  0x9
+#define SSC_CMD		    0xA
+#define SSC_CTRL	    0xB
 
 
 volatile bool active;
@@ -92,7 +92,7 @@ void __time_critical_func(bus_interface)(void)
 
         if (read) {
             if (!io) {  // DEVSEL
-                switch (addr & 0xFF) {
+                switch (addr & 0xF) {
                     case SSC_PARAMETERS:
                         pio_sm_put(pio0, sm_read, (sio_hw->fifo_st & 3) << 3);
                     break;
@@ -101,8 +101,8 @@ void __time_critical_func(bus_interface)(void)
                         pio_sm_put(pio0, sm_read, sio_hw->fifo_rd);
                     break;
 
-                    default:
-                        pio_sm_put(pio0, sm_read, firmware[addr]);
+                    // default:
+                    //     pio_sm_put(pio0, sm_read, firmware[addr]);
                 }
             } else {
                 if (!strb || active) {
@@ -113,7 +113,7 @@ void __time_critical_func(bus_interface)(void)
             uint32_t data = pio_sm_get_blocking(pio0, sm_write);
             if (!io)   // DEVSEL
             {
-                switch (addr & 0xFF)
+                switch (addr & 0xF)
                 {
                     case SSC_CTRL:
                     case SSC_CMD:
