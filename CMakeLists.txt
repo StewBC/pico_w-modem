@@ -20,7 +20,7 @@ GetGithubCode(pico_sdk PICO_SDK_PATH https://github.com/raspberrypi/pico-sdk.git
 InitSubmodules(${PICO_SDK_PATH})
 
 # FreeRTOS-Kernel - get only
-GetGithubCode(FreeRTOS-Kernel FREERTOS_KERNEL_PATH https://github.com/FreeRTOS/FreeRTOS-Kernel.git V10.5.0)
+GetGithubCode(FreeRTOS-Kernel FREERTOS_KERNEL_PATH https://github.com/FreeRTOS/FreeRTOS-Kernel.git V10.5.1)
 
 # WolfSSL - get from git and build library
 GetGithubCode(wolfssl WOLFSSL_PATH https://github.com/wolfSSL/wolfssl.git v5.5.4-stable)
