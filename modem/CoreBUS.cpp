@@ -26,13 +26,13 @@ SOFTWARE.
 
 #ifdef USE_PIO
 
-#include "Queue.h"
+#include "RingBuf.h"
 #include "CoreBUS.h"
 
 namespace Modem
 {
-extern Queue c0rx;  // The queue that core 0 receives bytes on
-// extern Queue c0tx;
+extern RingBuffer c0rx;  // The queue that core 0 receives bytes on
+extern RingBuffer c0tx;
 };
 
 extern const __attribute__((aligned(4))) uint8_t firmware[];
@@ -41,18 +41,15 @@ namespace CoreBUS
 {
 #include "bus.pio.h"
 
-#define SSC_DATA	    0x8
-#define SSC_PARAMETERS  0x9
-#define SSC_CMD		    0xA
-#define SSC_CTRL	    0xB
-
+#define SSC_DATA        0x8
+#define SSC_STATUS      0x9
+#define SSC_COMMAND     0xA
+#define SSC_CONTROL     0xB
 
 volatile bool active;
 
 void bus_init()
 {
-    while(!(Modem::c0rx.isInit())) {;}
-    
     for (uint gpio = gpio_addr; gpio < gpio_addr + size_addr; gpio++) {
         gpio_init(gpio);
         gpio_set_pulls(gpio, false, false);  // floating
@@ -80,8 +77,14 @@ void bus_init()
 
 void __time_critical_func(bus_interface)(void) 
 {
-
     active = false;
+
+    void* read_jumps[0x10] = {
+        &&_end, &&_end, &&_end, &&_end, &&_end, &&_end, &&_end, &&_end,
+        // 0x08, 0x09
+        &&_data, &&_status,
+        &&_end, &&_end, &&_end, &&_end, &&_end, &&_end
+    };
 
     while (true) {
         uint32_t enbl = pio_sm_get_blocking(pio0, sm_enbl);
@@ -92,18 +95,29 @@ void __time_critical_func(bus_interface)(void)
 
         if (read) {
             if (!io) {  // DEVSEL
-                switch (addr & 0xF) {
-                    case SSC_PARAMETERS:
-                        pio_sm_put(pio0, sm_read, (sio_hw->fifo_st & 3) << 3);
-                    break;
+                goto *read_jumps[addr & 0x0f];
 
-                    case SSC_DATA:
-                        pio_sm_put(pio0, sm_read, sio_hw->fifo_rd);
-                    break;
+_end:
+                pio_sm_put(pio0, sm_read, 0);
+                continue;
 
-                    // default:
-                    //     pio_sm_put(pio0, sm_read, firmware[addr]);
-                }
+_data:
+                // To use inter-core fifo
+                // pio_sm_put(pio0, sm_read, sio_hw->fifo_rd);
+                pio_sm_put(pio0, sm_read, Modem::c0tx.get());
+                if(Modem::c0tx.available())
+                    Modem::c0tx.advance();
+                continue;
+
+_status:
+                // To use inter-core fifo
+                // pio_sm_put(pio0, sm_read, (sio_hw->fifo_st & 3) << 3);
+                if(Modem::c0tx.available())
+                    pio_sm_put(pio0, sm_read, 0b00011000);
+                else
+                    pio_sm_put(pio0, sm_read, 0b00010000);
+                continue;
+
             } else {
                 if (!strb || active) {
                     pio_sm_put(pio0, sm_read, firmware[addr]);
@@ -115,10 +129,6 @@ void __time_critical_func(bus_interface)(void)
             {
                 switch (addr & 0xF)
                 {
-                    case SSC_CTRL:
-                    case SSC_CMD:
-                        break;
-
                     case SSC_DATA:
                         Modem::c0rx.Write(data);
                         break;

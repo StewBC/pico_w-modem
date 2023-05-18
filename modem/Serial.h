@@ -6,31 +6,10 @@
 #define serial_h
 
 #include "Stream.h"
-// #include "Queue.h"
 #include <pico/util/queue.h>
 #include <hardware/uart.h>
 
 #include <stdio.h>
-
-/*
- * Circular buffer class for uart rx/tx
- * The class has no over/under-flow protection
- */
-// class RingBuffer
-// {
-// private:
-//     static const int size = 256;
-
-// public:
-//     volatile int head = 0;
-//     volatile int tail = 0;
-//     unsigned char buffer[size];
-
-//     bool is_empty() { return head == tail; }
-//     bool is_full() { return ((head+1)%size) == tail; }
-//     void put(unsigned char byte) {buffer[head] = byte; head = ++head % size; }
-//     unsigned char get() { unsigned char c = buffer[tail]; tail = ++tail % size; return c; }
-// };
 
 /*
  * One of these classes to manage a UART
@@ -40,7 +19,6 @@ class Serial_ : public Stream
 private:
     int uartIRQ = 0;
     uart_inst_t *uartInstance = NULL;
-    // RingBuffer *rx = nullptr, *tx = nullptr;
     queue_t   *rx = nullptr, *tx = nullptr;
 
 public:

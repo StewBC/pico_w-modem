@@ -21,39 +21,38 @@ add_link_options(-L${WOLFSSL_ARM_BUILD_PATH} -L${WOLFSSH_ARM_BUILD_PATH})
 
 # Application, including in the FreeRTOS-Kernel
 add_executable(${PROJECT_NAME}
-        main.cpp
-        Modem.cpp
-        WString.h
-        WString.cpp
-        Printable.h
-        Print.h
-        Print.cpp
-        Stream.h
-        Stream.cpp
-        Serial.h
-        Serial.cpp
-        IPAddress.h
-        IPAddress.cpp
-        wcList.h
         Client.h
-        WiFi.h
-        WiFi.cpp
-        WiFiClient.h
-        WiFiClient.cpp
-        MemBuffer.h
-        MemBuffer.cpp
-        Queue.h
-        Queue.cpp
-        CoreUART.h
-        CoreUART.cpp        
-        CoreBUS.h
         CoreBUS.cpp
-        NTPClient.h
-        NTPClient.cpp
-        SDFile.h
-        SDFile.cpp
+        CoreBUS.h
+        CoreUART.cpp        
+        CoreUART.h
         hw_config.c
         incbin.s
+        IPAddress.cpp
+        IPAddress.h
+        main.cpp
+        MemBuffer.cpp
+        MemBuffer.h
+        Modem.cpp
+        NTPClient.cpp
+        NTPClient.h
+        Print.cpp
+        Print.h
+        Printable.h
+        RingBuf.h
+        SDFile.cpp
+        SDFile.h
+        Serial.cpp
+        Serial.h
+        Stream.cpp
+        Stream.h
+        wcList.h
+        WiFi.cpp
+        WiFi.h
+        WiFiClient.cpp
+        WiFiClient.h
+        WString.cpp
+        WString.h
 )
 
 # Force the build of libwolfss?.a through an external Makefile
@@ -72,7 +71,7 @@ include_directories(
 # Select where debug prints go
 pico_enable_stdio_usb(${PROJECT_NAME} 0)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
-pico_enable_stdio_semihosting(${PROJECT_NAME} 0)
+pico_enable_stdio_semihosting(${PROJECT_NAME} 1)
 
 if(NOT USING_UART)
         # Generate bus.pio.h if this is a PIO buile

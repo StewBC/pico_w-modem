@@ -58,7 +58,7 @@
 
 #include "WiFi.h"
 #include "WString.h"
-#include "Queue.h"
+#include "RingBuf.h"
 #include "MemBuffer.h"
 #include "NTPClient.h"
 #include "CoreUART.h"
@@ -128,10 +128,10 @@ absolute_time_t connectTime = nil_time;
 
 WiFiClient tcpClient; // Connections over WiFi
 #ifdef USE_UART
-Queue c0cmd;
+RingBuffer c0cmd;
 #endif
-Queue c0rx;
-Queue c0tx;
+RingBuffer c0rx;
+RingBuffer c0tx;
 
 typedef struct VDrive_
 {
@@ -690,7 +690,7 @@ void waitForSpace()
  */
 void welcome()
 {
-    c0tx.println();
+    c0tx.println("                                       ");
     c0tx.println("StewBC's RPi Pico W WiFi modem emulator");
     c0tx.println("github.com/StewBC/pico_w-modem");
     c0tx.println("BUILD " + build + "");
@@ -867,8 +867,9 @@ void hangUp()
 
 void adtVSend(int drive, int block)
 {
-    int size = 512;
-    int offset = block * 512 + vdrive[drive].headerSize;
+    const int size = 512;
+    const int DATA_START = 9;
+    const int offset = block * 512 + vdrive[drive].headerSize;
 
     if(!vdrive[drive].mounted)
         return;
@@ -889,15 +890,15 @@ void adtVSend(int drive, int block)
     txBuf[5] = (pd_time >> 8) & 0xff;
     txBuf[6] = pd_date & 0xff;
     txBuf[7] = (pd_date >> 8) & 0xff;
-    txBuf[8] = 0;
+    txBuf[DATA_START-1] = 0;
 
-    for(size_t i=0; i<8; i++)
-        txBuf[8] ^= txBuf[i];
+    for(size_t i=0; i<DATA_START-1; i++)
+        txBuf[DATA_START-1] ^= txBuf[i];
 
-    size_t count = size, index = 9;
-    while(index < size + 9)
+    size_t index = 0;
+    while(index < size)
     {
-        size_t read = smb2_pread(vdrive[drive].smb2, vdrive[drive].fh, &txBuf[index], count, offset);
+        size_t read = smb2_pread(vdrive[drive].smb2, vdrive[drive].fh, &txBuf[DATA_START+index], size-index, offset+index);
         if (read == -EAGAIN)
         {
             continue;
@@ -908,25 +909,24 @@ void adtVSend(int drive, int block)
             break;
         }
 
-        index += read ;
-        count -= read;
-        offset += read;
+        index += read;
     }
 
     // Checksum the file data
     uint8_t checksum = 0;
     for(int i=0; i<size; i++)
     {
-        checksum ^= txBuf[9+i];
+        checksum ^= txBuf[DATA_START+i];
     }
 
     // If the read did not get the right number of bytes,
     // Make it the right size but make sure the checksum fails
-    if(index < size + 9)
+    if(index < size)
     {
-        index = size + 9;
+        index = size;
         checksum++;
     }
+    index += DATA_START;
 
     // Add the file data checksup
     txBuf[index++] = checksum;
@@ -945,8 +945,7 @@ void adtVOnline(byte old_serial_speed)
 {
     while(1)
     {
-        c0rx.readBytes(rxBuf, 1);
-        if(rxBuf[0] == 0xC5)
+        if(c0rx.readBytes(rxBuf, 1) && rxBuf[0] == 0xC5)
         {
             c0rx.readBytes(&rxBuf[1], 4);
             int drive = rxBuf[1] >> 2;
@@ -954,7 +953,11 @@ void adtVOnline(byte old_serial_speed)
 
             bool checksum = rxBuf[4] == rxBuf[0] ^ rxBuf[1] ^ rxBuf[2] ^ rxBuf[3];
             if(!checksum)
+            {
+                printf("err: %d %d %d %d\n", rxBuf[0] , rxBuf[1] , rxBuf[2] , rxBuf[3]);
                 continue;
+            }
+
             if(/*rxBuf[i+1] == 0x01 ||*/ rxBuf[1] == 0x03 || rxBuf[1] == 0x05)
             {
                 adtVSend(drive, block);
@@ -1029,11 +1032,18 @@ void adtVServeSetup(String upCmd)
     }
     else if (upCmd == "ATVSO")
     {
+        if(!vdrive[0].mounted && !vdrive[1].mounted)
+        {
+            sendResult(R_ERROR);
+        }
+        else
+        {
 #ifdef USE_UART        
-        c0cmd.Write('B');
-        c0cmd.Write(8);     // 8 = 115200
+            c0cmd.Write('B');
+            c0cmd.Write(8);     // 8 = 115200
 #endif        
-        adtVOnline(serialspeed);
+            adtVOnline(serialspeed);
+        }
     }
     else
     {

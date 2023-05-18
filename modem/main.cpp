@@ -19,7 +19,7 @@
 #include <wolfssl/ssl.h>
 #include <wolfssh/ssh.h>
 
-#include "Queue.h"
+#include "RingBuf.h"
 
 namespace Modem
 {
@@ -31,12 +31,13 @@ extern void loadSettings();
     extern int  bauds[];
     extern byte serialspeed;
     // This is a command queue - this "commands" the SSC - switch baud, etc.
-    extern Queue c0cmd;
+    extern RingBuffer c0cmd;
 #endif
 
 // These are the queues that core0 uses - core 0 receives on c0rx and sends on c0tx
-extern Queue c0rx;
-extern Queue c0tx;
+extern RingBuffer c0rx;  // The queue that core 0 receives bytes on
+extern RingBuffer c0tx;  // The queue that core 0 transmits bytes on
+
 // True when the SD card has been initialised
 extern bool sd_init_driver;
 
@@ -76,7 +77,6 @@ static void main_task(__unused void *params)
 }
 
 void core1_main()
-// static void core1_main(__unused void *params)
 {
 #ifdef USE_UART
     CoreUART::init();
@@ -88,16 +88,16 @@ void core1_main()
 }
 
 #ifdef USE_PIO
-static void fifo_task(__unused void *params)
-{
-    while(true)
-    {
-        if (multicore_fifo_wready() && Modem::c0tx.available()) 
-        {
-            multicore_fifo_push_blocking(Modem::c0tx.Read());
-        }
-    }
-}
+// static void fifo_task(__unused void *params)
+// {
+//     while(true)
+//     {
+//         if (multicore_fifo_wready() && Modem::c0tx.available()) 
+//         {
+//             multicore_fifo_push_blocking(Modem::c0tx.Read());
+//         }
+//     }
+// }
 #endif
 
 int main(void)
@@ -115,16 +115,11 @@ int main(void)
 
     multicore_reset_core1();
 
-#ifdef USE_UART
-	Modem::c0cmd.setup(2);
-#endif
-    Modem::c0rx.setup(2048);    // May have to be bigger for block operations
-    Modem::c0tx.setup(2048);
-
     multicore_launch_core1(core1_main);
-#ifdef USE_PIO
-    xTaskCreate(fifo_task, "FifoThread", configMINIMAL_STACK_SIZE, NULL, 1, &task);
-#endif
+// #ifdef USE_PIO
+// Add this and fifo_task back in to use the inter-core fifo
+//     xTaskCreate(fifo_task, "FifoThread", configMINIMAL_STACK_SIZE, NULL, 1, &task);
+// #endif
     xTaskCreate(main_task, "MainThread", configMINIMAL_STACK_SIZE, NULL, 1, &task);
     vTaskStartScheduler();
 }

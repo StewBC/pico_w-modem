@@ -1,6 +1,6 @@
 #ifdef USE_UART
 
-#include "Queue.h"
+#include "RingBuf.h"
 #include "Serial.h"
 #include "CoreUART.h"
 #include <stdio.h>
@@ -10,10 +10,10 @@ namespace Modem
 extern int  bauds[];
 extern byte serialspeed;
 // This is a command queue - this "commands" the SSC - switch baud, etc.
-extern Queue c0cmd;
+extern RingBuffer c0cmd;
 // These are the queues that core0 uses - core 0 sends on c0rx, core1 reads there
-extern Queue c0rx;
-extern Queue c0tx;
+extern RingBuffer c0rx;
+extern RingBuffer c0tx;
 };
 
 namespace CoreUART
@@ -22,8 +22,6 @@ Serial_ Serial;       // Connection over UART
 
 void init()
 {
-    // Wat for the queueus to be set up on Core 0
-    while(!(Modem::c0cmd.isInit() && Modem::c0rx.isInit() && Modem::c0tx.isInit())) {;}
     // Set up the serial
     Serial.setup(uart0, Modem::bauds[Modem::serialspeed], 8, 1, UART_PARITY_NONE);
 }
