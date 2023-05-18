@@ -71,7 +71,7 @@ include_directories(
 # Select where debug prints go
 pico_enable_stdio_usb(${PROJECT_NAME} 0)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
-pico_enable_stdio_semihosting(${PROJECT_NAME} 1)
+pico_enable_stdio_semihosting(${PROJECT_NAME} 0)
 
 if(NOT USING_UART)
         # Generate bus.pio.h if this is a PIO buile

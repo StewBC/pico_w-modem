@@ -954,7 +954,6 @@ void adtVOnline(byte old_serial_speed)
             bool checksum = rxBuf[4] == rxBuf[0] ^ rxBuf[1] ^ rxBuf[2] ^ rxBuf[3];
             if(!checksum)
             {
-                printf("err: %d %d %d %d\n", rxBuf[0] , rxBuf[1] , rxBuf[2] , rxBuf[3]);
                 continue;
             }
 
