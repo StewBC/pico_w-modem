@@ -75,15 +75,37 @@ void bus_init()
     read_program_init(offset);
 }
 
+typedef void (*port_function)();
+uint8_t values[0x10] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+void __time_critical_func(empty)(void) {;}
+void __time_critical_func(ssc_data)(void) 
+{
+    int buffered = Modem::c0tx.available() ? 0b00011000 : 0b00010000;
+    if(buffered == 0b00011000) // was there something?
+    {
+        Modem::c0tx.advance(); // it was read so move on and see if there's something new
+        buffered = Modem::c0tx.available() ? 0b00011000 : 0b00010000;
+        values[SSC_DATA] = Modem::c0tx.get(); // load new char (or garbage)
+    }
+    values[SSC_STATUS] = buffered; // set status as likely read next
+}
+
+void __time_critical_func(ssc_status)(void) 
+{
+    // see if a character showed up
+    int buffered = Modem::c0tx.available() ? 0b00011000 : 0b00010000;
+    values[SSC_STATUS] = buffered; // set status to indicate availability
+    // If there is a new char, update values for data since that's probably read next
+    values[SSC_DATA] = Modem::c0tx.get(); 
+}
+
 void __time_critical_func(bus_interface)(void) 
 {
     active = false;
-
-    void* read_jumps[0x10] = {
-        &&_end, &&_end, &&_end, &&_end, &&_end, &&_end, &&_end, &&_end,
-        // 0x08, 0x09
-        &&_data, &&_status,
-        &&_end, &&_end, &&_end, &&_end, &&_end, &&_end
+    port_function portfunc[0x10] = {
+        &empty, &empty, &empty, &empty, &empty, &empty, &empty, &empty,
+        &ssc_data, &ssc_status,
+        &empty, &empty, &empty, &empty, &empty, &empty
     };
 
     while (true) {
@@ -95,29 +117,9 @@ void __time_critical_func(bus_interface)(void)
 
         if (read) {
             if (!io) {  // DEVSEL
-                goto *read_jumps[addr & 0x0f];
-
-_end:
-                pio_sm_put(pio0, sm_read, 0);
-                continue;
-
-_data:
-                // To use inter-core fifo
-                // pio_sm_put(pio0, sm_read, sio_hw->fifo_rd);
-                pio_sm_put(pio0, sm_read, Modem::c0tx.get());
-                if(Modem::c0tx.available())
-                    Modem::c0tx.advance();
-                continue;
-
-_status:
-                // To use inter-core fifo
-                // pio_sm_put(pio0, sm_read, (sio_hw->fifo_st & 3) << 3);
-                if(Modem::c0tx.available())
-                    pio_sm_put(pio0, sm_read, 0b00011000);
-                else
-                    pio_sm_put(pio0, sm_read, 0b00010000);
-                continue;
-
+                int port = addr & 0x0f;
+                pio_sm_put(pio0, sm_read, values[port]);
+                portfunc[port]();
             } else {
                 if (!strb || active) {
                     pio_sm_put(pio0, sm_read, firmware[addr]);
