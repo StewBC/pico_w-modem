@@ -2,7 +2,7 @@
 
 This repository contains the code to make a WiFi modem out of a Raspberry Pi Pico W.  I started with this code for the ESP8266 https://github.com/ssshake/vintage-computer-wifi-modem, which itself was based on https://github.com/RolandJuno/esp8266_modem which again was based on https://github.com/jsalin/esp8266_modem.  From there I added and removed features.  
   
-I am using this with my Apple II and can connect it to either an Apple II Super Serial Card via a MAX3232 RS232 Serial Port to TTL Converter Module, or I use it on a card that plugs directly into the Apple II Bus.  The latter was made possible by the work from this project: https://github.com/a2retrosystems/a2retronet-rp2040.  I used the demo code almost as-is for the Pico W working with the Apple II bus.  
+I am using this with my Apple II and can connect it to either an Apple II Super Serial Card via a MAX3232 RS232 Serial Port to TTL Converter Module, or I use it on a card that plugs directly into the Apple II Bus.  The latter was made possible by the work from this project: https://github.com/oliverschmidt/a2pico.  I used the demo code almost as-is for the Pico W working with the Apple II bus.  
   
 The project was also built in consultation with Oliver Schmidt.  He conceived of the idea and pointed me at some of the libraries to use and was very generous with his time as I put this together.  The card that plugs into the Apple II was made by Glenn Jones.  He had to make me a second one because the first one I destroyed within about a minute of opening the box.  I greatly appreciate his patience with me.  
   
